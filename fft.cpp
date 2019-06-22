@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#include <random>
 using namespace std;
 
 #define rep(i, a, b) for(int i = a; i < (b); ++i)
@@ -11,12 +12,22 @@ typedef vector<int> vi;
 
 volatile void *vol;
 
+double r() {
+	static_assert(RAND_MAX == INT_MAX, "");
+	long long max = 1LL << 31;
+	long long r = rand();
+	r *= max;
+	r ^= rand();
+	return (double)r / (double)(max * max);
+}
+
 template<class T>
 T fast_mul(T a, T b) {
 	return T(real(a) * real(b) - imag(a) * imag(b),
 			real(a) * imag(b) + imag(a) * real(b));
 }
 
+typedef vector<double> vd;
 typedef complex<double> C;
 typedef complex<long double> Cd;
 
@@ -111,6 +122,33 @@ double fftCountMultipliedMass(vector<C>& a) {
 	return mass;
 }
 
+template<class C, class D, class F>
+vector<D> convMod(const vi& alo, const vi& ahi, const vi& blo, const vi& bhi, const F& fft) {
+	assert(sz(alo) == sz(ahi));
+	assert(sz(blo) == sz(bhi));
+	assert(!alo.empty());
+	assert(!blo.empty());
+	vector<D> res((sz(alo) + sz(blo) - 1) * 4);
+	int B = 32 - __builtin_clz(sz(res)), n = 1 << B;
+	vector<C> L(n), R(n), outs(n), outl(n);
+	rep(i,0,sz(alo)) L[i] = C(alo[i], ahi[i]);
+	rep(i,0,sz(blo)) R[i] = C(blo[i], bhi[i]);
+	fft(L), fft(R);
+	rep(i,0,n) {
+		int j = -i & (n - 1);
+		outl[j] = (L[i] + conj(L[j])) * R[i] / (D(2) * n);
+		outs[j] = (L[i] - conj(L[j])) * R[i] / (D(2) * n) / C(0, 1);
+	}
+	fft(outl), fft(outs);
+	rep(i,0,sz(res)/4) {
+		res[i*4 + 0] = real(outl[i]);
+		res[i*4 + 1] = imag(outl[i]);
+		res[i*4 + 2] = real(outs[i]);
+		res[i*4 + 3] = imag(outs[i]);
+	}
+	return res;
+}
+
 void fftError() {
 	const int n = 1 << 16;
 	const int maxcoef = 1000;
@@ -145,8 +183,6 @@ void fftError() {
 	pr(r2);
 	pr(r3);
 }
-
-typedef vector<double> vd;
 
 template<class C, class D, class F>
 vector<D> conv(const vd& a, const vd& b, F fft) {
@@ -200,6 +236,7 @@ vector<D> convNaive(const vd& a, const vd& b, F fft) {
 
 void convError(int argc, char** argv) {
 	// ./a.out conv-error 16 100000 100 10 -1,1
+	// ./a.out conv-error 8 2000000 50000 100 0,1
 	//                    logn maxcoef its maxrand mode
 	const int logn = atoi(argv[2]);
 	const int n = 1 << logn;
@@ -225,11 +262,9 @@ void convError(int argc, char** argv) {
 	long double avgs[100] = {};
 	long double maxerrs[100] = {};
 
-	// In theory we have a bound |n * (log2(n) - 1) * maxcoef^2 < 9.3e14| where results
+	// In theory we have a bound |2n * log2(n) * maxcoef^2 < 9.3e14| where results
 	// are guaranteed to round correctly. In practice we can go slightly higher.
 	cout << (2*n * log2(n) * maxcoef * maxcoef) << ' ' << 9e14 << endl;
-
-	auto r = []() -> double { return rand() / (RAND_MAX + 1.0); };
 
 	rep(it,0,its) {
 		int good[] = {0,1,6,8};
@@ -274,7 +309,7 @@ void convError(int argc, char** argv) {
 				rep(i,0,n) {
 					int pc = (int)__builtin_popcount(i);
 					if (!preferHigh) pc = logn - pc;
-					double w = pow(10000, (double)pc / logn);
+					double w = pow(100, (double)pc / logn);
 					ar[i] = (double)maxcoef * maxcoef * (1 - r() * randratio) * w;
 					ws += w;
 				}
@@ -305,8 +340,8 @@ void convError(int argc, char** argv) {
 			}
 		}
 		if (curmode == 11) rep(i,0,n) {
-			a[i] *= (double)sin(M_PIl * 2 / n * i) * M_SQRT2;
-			b[i] *= (double)cos(M_PIl * 2 / n * i) * M_SQRT2;
+			a[i] *= sin(M_PI * 2 / n * i) * M_SQRT2;
+			b[i] *= cos(M_PI * 2 / n * i) * M_SQRT2;
 			a[i] += (r() - 0.5) * maxrand;
 			b[i] += (r() - 0.5) * maxrand;
 		}
@@ -319,7 +354,7 @@ void convError(int argc, char** argv) {
 			vector<C> vec(2*n);
 			copy(all(a), begin(vec));
 			double m = fftCountMultipliedMass(vec);
-			cout << "root-multipled L2 mass " << m << endl;
+			cout << "root-multiplied L2 mass " << m << endl;
 		}
 
 		if (curbisa == 1) b = a;
@@ -360,6 +395,83 @@ void convError(int argc, char** argv) {
 		pr(r6, 5);
 	}
 	rep(i,1,6) {
+		cout << setprecision(5) << maxerrs[i] << ' ' << avgs[i] / its << endl;
+	}
+}
+
+void fftModError(int argc, char** argv) {
+	// ./a.out fft-mod-error 16 100000 100 10 -1,1
+	// ./a.out fft-mod-error 8 2000000 50000 100 0,1
+	//                       logn maxcoef its maxrand mode
+	const int logn = atoi(argv[2]);
+	const int n = 1 << logn;
+	const int its = atoi(argv[4]); // 16
+	const int maxcoef = atoi(argv[3]); // 100000 for logn = 16
+	const int maxrand = atoi(argv[5]); // 2000;
+	int mode = 0;
+	int bisa = 0;
+	if (argc > 6) {
+		char *modestr = argv[6];
+		int parti = 0;
+		while (char *tok = strtok(modestr, ",")) {
+			int parsed = atoi(tok);
+			if (parti == 0) mode = parsed;
+			if (parti == 1) bisa = parsed;
+			parti++;
+			modestr = 0;
+		}
+	}
+	srand(its);
+
+	long double avgs[100] = {};
+	long double maxerrs[100] = {};
+
+	// In theory we have a bound |2n * log2(n) * maxcoef^2 < 8.6e14| where results
+	// are guaranteed to round correctly. In practice we can go slightly higher.
+	cout << (2*n * log2(n) * maxcoef * maxcoef) << ' ' << 8.6e14 << endl;
+
+	rep(it,0,its) {
+		vi a(n), b(n), c(n), d(n);
+		int curmode = mode;
+		int curbisa = bisa;
+		rep(i,0,n) a[i] = maxcoef - rand() % maxrand;
+		rep(i,0,n) b[i] = maxcoef - rand() % maxrand;
+		rep(i,0,n) c[i] = maxcoef - rand() % maxrand;
+		rep(i,0,n) d[i] = maxcoef - rand() % maxrand;
+		if (curmode == 1) {
+			rep(i,0,n) a[i] = rand() % maxcoef;
+			rep(i,0,n) b[i] = rand() % maxcoef;
+			rep(i,0,n) c[i] = rand() % maxcoef;
+			rep(i,0,n) d[i] = rand() % maxcoef;
+		}
+
+		if (curbisa == 1) b = c = d = a;
+		if (curbisa == 2) {
+			b = c = d = a;
+			reverse(all(c));
+			reverse(all(d));
+		}
+
+		vector<long double> r1 = convMod<Cd, long double>(a, b, c, d, fftLd);
+		vd r2 = convMod<C, double>(a, b, c, d, fftAccurate);
+
+		auto pr = [&](auto&& vec, int ind) {
+			long double avg = 0;
+			long double maxerr = 0;
+			rep(i,0,sz(vec)) {
+				auto diff = vec[i] - r1[i];
+				long double err = abs(diff);
+				avg += err;
+				maxerr = max(maxerr, err);
+			}
+			avg /= n;
+			avgs[ind] += avg;
+			maxerrs[ind] = max(maxerrs[ind], maxerr);
+		};
+
+		pr(r2, 1);
+	}
+	rep(i,1,2) {
 		cout << setprecision(5) << maxerrs[i] << ' ' << avgs[i] / its << endl;
 	}
 }
@@ -618,7 +730,7 @@ void multError() {
 				random_range(-10, 10),
 				random_range(-10, 10));
 	};
-	auto test = [&rc, eps, iters](C x) {
+	auto test = [&rc, eps](C x) {
 		Cd X = x;
 		double res = 0;
 		rep(it,0,iters) {
@@ -632,7 +744,7 @@ void multError() {
 		return res / eps;
 	};
 
-	auto test2 = [&rc, eps, iters]() {
+	auto test2 = [&rc, eps]() {
 		double res = 0;
 		rep(it,0,iters) {
 			C x = rc();
@@ -730,6 +842,7 @@ int main(int argc, char** argv) {
 	else if (mode == "fft-error") fftError();
 	else if (mode == "conv-error") convError(argc, argv);
 	else if (mode == "conv-perf") convPerf(argc, argv);
+	else if (mode == "fft-mod-error") fftModError(argc, argv);
 	else if (mode == "fft-perf-each") fftPerfEach(argc, argv);
 	else cout << "no such mode" << endl;
 }
