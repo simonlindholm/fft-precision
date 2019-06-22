@@ -32,9 +32,10 @@ T fast_mul(T a, T b) {
 			real(a) * imag(b) + imag(a) * real(b));
 }
 
+typedef long double ld;
 typedef vector<double> vd;
 typedef complex<double> C;
-typedef complex<long double> Cd;
+typedef complex<ld> Cd;
 
 void fftLd(vector<Cd>& a);
 void fftAccurate(vector<C>& a);

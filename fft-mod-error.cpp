@@ -24,8 +24,8 @@ int main(int argc, char** argv) {
 	}
 	srand(its);
 
-	long double avgs[100] = {};
-	long double maxerrs[100] = {};
+	ld avgs[100] = {};
+	ld maxerrs[100] = {};
 
 	// In theory we have a bound |2n * log2(n) * maxcoef^2 < 8.6e14| where results
 	// are guaranteed to round correctly. In practice we can go slightly higher.
@@ -53,15 +53,15 @@ int main(int argc, char** argv) {
 			reverse(all(d));
 		}
 
-		vector<long double> r1 = convMod<Cd, long double>(a, b, c, d, fftLd);
+		vector<ld> r1 = convMod<Cd, ld>(a, b, c, d, fftLd);
 		vd r2 = convMod<C, double>(a, b, c, d, fftAccurate);
 
 		auto pr = [&](auto&& vec, int ind) {
-			long double avg = 0;
-			long double maxerr = 0;
+			ld avg = 0;
+			ld maxerr = 0;
 			rep(i,0,sz(vec)) {
 				auto diff = vec[i] - r1[i];
-				long double err = abs(diff);
+				ld err = abs(diff);
 				avg += err;
 				maxerr = max(maxerr, err);
 			}

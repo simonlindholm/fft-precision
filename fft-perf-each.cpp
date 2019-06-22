@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 				random_range(-10, 10),
 				random_range(-10, 10));
 	int L = 31 - __builtin_clz(n);
-	static vector<complex<long double>> R(2, 1);
+	static vector<complex<ld>> R(2, 1);
 	static vector<C> rt(2, 1);
 	for (static int k = 2; k < n; k *= 2) {
 		R.resize(n); rt.resize(n);

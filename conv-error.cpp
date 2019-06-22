@@ -2,7 +2,7 @@
 
 double fftCountMultipliedMass(vector<C>& a) {
 	int n = sz(a), L = 31 - __builtin_clz(n);
-	static vector<complex<long double>> R(2, 1);
+	static vector<complex<ld>> R(2, 1);
 	static vector<C> rt(2, 1);   // ^ 10% faster if double
 	for (static int k = 2; k < n; k *= 2) {
 		R.resize(n); rt.resize(n);
@@ -51,8 +51,8 @@ int main(int argc, char** argv) {
 	}
 	srand(its);
 
-	long double avgs[100] = {};
-	long double maxerrs[100] = {};
+	ld avgs[100] = {};
+	ld maxerrs[100] = {};
 
 	// In theory we have a bound |2n * log2(n) * maxcoef^2 < 9.3e14| where results
 	// are guaranteed to round correctly. In practice we can go slightly higher.
@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
 			b[n-1 - i] *= -1;
 		}
 
-		vector<long double> r1 = conv<Cd, long double>(a, b, fftLd);
+		vector<ld> r1 = conv<Cd, ld>(a, b, fftLd);
 		vd r2 = conv<C, double>(a, b, fftAccurate);
 		vd r3 = conv<C, double>(a, b, fftOld);
 		vd r4 = conv2<Cd, C, double>(a, b, fftLd, fftAccurate);
@@ -167,11 +167,11 @@ int main(int argc, char** argv) {
 		vd r6 = convNaive<C, double>(a, b, fftAccurate);
 
 		auto pr = [&](auto&& vec, int ind) {
-			long double avg = 0;
-			long double maxerr = 0;
+			ld avg = 0;
+			ld maxerr = 0;
 			rep(i,0,n) {
 				auto diff = vec[i] - r1[i];
-				long double err = abs(diff);
+				ld err = abs(diff);
 				avg += err;
 				maxerr = max(maxerr, err);
 			}

@@ -18,11 +18,11 @@ int main() {
 	double eps = nextafter(1.0, 2.0) - 1.0; // 2^-52
 
 	auto pr = [&](auto&& vec) {
-		long double avg = 0;
-		long double maxerr = 0;
+		ld avg = 0;
+		ld maxerr = 0;
 		rep(i,0,n) {
 			auto diff = Cd(vec[i]) - r1[i];
-			long double err = abs(diff) / eps;
+			ld err = abs(diff) / eps;
 			avg += err;
 			maxerr = max(maxerr, err);
 		}

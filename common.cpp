@@ -25,7 +25,7 @@ void fftLd(vector<Cd>& a) {
 	rep(i,0,n) if (i < rev[i]) swap(a[i], a[rev[i]]);
 	for (int k = 1; k < n; k *= 2)
 		for (int i = 0; i < n; i += 2 * k) rep(j,0,k) {
-			auto x = (long double *)&rt[j+k], y = (long double *)&a[i+j+k];
+			auto x = (ld *)&rt[j+k], y = (ld *)&a[i+j+k];
 			Cd z(x[0]*y[0] - x[1]*y[1], x[0]*y[1] + x[1]*y[0]);
 			a[i + j + k] = a[i + j] - z;
 			a[i + j] += z;
@@ -34,7 +34,7 @@ void fftLd(vector<Cd>& a) {
 
 void fftAccurate(vector<C>& a) {
 	int n = sz(a), L = 31 - __builtin_clz(n);
-	static vector<complex<long double>> R(2, 1);
+	static vector<complex<ld>> R(2, 1);
 	static vector<C> rt(2, 1);   // ^ 10% faster if double
 	for (static int k = 2; k < n; k *= 2) {
 		R.resize(n); rt.resize(n);
