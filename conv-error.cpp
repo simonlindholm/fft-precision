@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
 
 		vector<long double> r1 = conv<Cd, long double>(a, b, fftLd);
 		vd r2 = conv<C, double>(a, b, fftAccurate);
-		vd r3 = conv<C, double>(a, b, fftCurrent);
+		vd r3 = conv<C, double>(a, b, fftOld);
 		vd r4 = conv2<Cd, C, double>(a, b, fftLd, fftAccurate);
 		vd r5 = conv2<C, Cd, double>(a, b, fftAccurate, fftLd);
 		vd r6 = convNaive<C, double>(a, b, fftAccurate);

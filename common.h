@@ -38,7 +38,7 @@ typedef complex<long double> Cd;
 
 void fftLd(vector<Cd>& a);
 void fftAccurate(vector<C>& a);
-void fftCurrent(vector<C>& a);
+void fftOld(vector<C>& a);
 
 template<class C, class D, class F>
 vector<D> convMod(const vi& alo, const vi& ahi, const vi& blo, const vi& bhi, const F& fft) {

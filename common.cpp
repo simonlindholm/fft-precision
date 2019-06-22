@@ -56,7 +56,7 @@ void fftAccurate(vector<C>& a) {
 	}
 }
 
-void fftCurrent(vector<C>& a) {
+void fftOld(vector<C>& a) {
 	int n = sz(a), L = 31 - __builtin_clz(n);
 	vi rev(n); static vector<C> rt(2, 1);
 	rep(i,0,n) rev[i] = (rev[i / 2] | (i & 1) << L) / 2;

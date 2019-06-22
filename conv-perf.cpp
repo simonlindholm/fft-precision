@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
 			vd r2 = conv<C, double>(a, b, fftAccurate);
 			vol = r2.data();
 		} else if (which == 3) {
-			vd r3 = conv<C, double>(a, b, fftCurrent);
+			vd r3 = conv<C, double>(a, b, fftOld);
 			vol = r3.data();
 		}
 	}

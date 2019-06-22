@@ -13,7 +13,7 @@ int main() {
 	fftAccurate(r2);
 
 	auto r3 = a;
-	fftCurrent(r3);
+	fftOld(r3);
 
 	double eps = nextafter(1.0, 2.0) - 1.0; // 2^-52
 
